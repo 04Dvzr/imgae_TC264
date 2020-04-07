@@ -17,7 +17,7 @@ int main(int argc, char** argv)
 	int start, stop;
 	int a,b,c;
 	double	duration;
-	String filename = (argc >= 2) ? argv[1] : "F://c.jpg";
+	String filename = (argc >= 2) ? argv[1] : "../tset_img/g.jpg";
 	Mat image;
 	image = imread(filename, IMGMODE); // Read the file
 
@@ -46,9 +46,21 @@ int main(int argc, char** argv)
 //	namedWindow("noisy window", WINDOW_GUI_EXPANDED);
 //	imshow("noisy window", noisy);
 
-
 	int row = image.rows;
 	int col = image.cols;
+
+/*
+	SQI abc;
+	abc.row = row;
+	abc.col = col;
+	abc.point_col = 0;
+	abc.point_row = 0;
+	abc.num= 0;
+
+	SQI bc;
+*/
+
+	SQ AAAA;
 
 	show_image_matrix(noisy);
 	Mat img2(c_rows, c_cols, CV_8UC1);
@@ -57,12 +69,19 @@ int main(int argc, char** argv)
 //	filter_near(row,col,2,35);
 //	filter_near_avg(row, col, 2, 35, 20,18);
 //	near_avg_re(row, col, 1);
-//	round_plus(row, col, 3, 3, 300, 8);
-	a=shape_postion(row,col,0,0,10);
+//	round_plus(row, col, 3, 3, 75, 20);
 //	round_plus_2(row,col,3.5,3.5,28,8);
 //	lapace_shaper(row, col, 3.85,0.01);
 //	filter_mid(row, col, 1);
 //	filter_near(row, col, 1, 20);
+
+
+
+
+//	bc=shape_postion2(abc,10,100);
+//	a=shape_postion(row,col,0,0,10);
+	AAAA = muti_shape(320,240,0,0,AAAA,20,200);
+
 
 	stop = clock();
 	duration = double(stop - start);
@@ -70,9 +89,18 @@ int main(int argc, char** argv)
 	namedWindow("Display1 window", WINDOW_GUI_EXPANDED);
 	imshow("Display1 window", img2);
 	cout << "time for filter_near:" << duration << " ms" << endl;
-	b = a >> 16;
-	c = a & 0xffff;
-	cout << "中心点 row " << b <<" col "<< c << endl;
+
+	for (int i = 0; i != AAAA.count+1; i++)
+	{
+		cout << "中心点 row " << AAAA.point_row[i] << " col " << AAAA.point_col[i] << endl;
+		cout << "row数 " << AAAA.row[i] << " col数 " << AAAA.col[i] << endl;
+		cout << i << endl;
+	}
+
+//	cout << "中心点 row " << bc.point_row <<" col "<< bc.point_col << endl;
+//	cout << "row数 " << bc.row << " col数 " << bc.col << endl;
+
+
 
 //对比显示
 /*

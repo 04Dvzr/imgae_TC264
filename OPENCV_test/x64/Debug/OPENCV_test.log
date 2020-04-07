@@ -1,18 +1,5 @@
-﻿  base.cpp
-c:\users\jerryfan\desktop\1234\opencv_test\opencv_test\base.cpp(532): warning C4244: “+=”: 从“double”转换到“int”，可能丢失数据
-c:\users\jerryfan\desktop\1234\opencv_test\opencv_test\base.cpp(533): warning C4244: “+=”: 从“double”转换到“int”，可能丢失数据
-c:\users\jerryfan\desktop\1234\opencv_test\opencv_test\base.cpp(537): warning C4244: “+=”: 从“double”转换到“int”，可能丢失数据
-c:\users\jerryfan\desktop\1234\opencv_test\opencv_test\base.cpp(538): warning C4244: “+=”: 从“double”转换到“int”，可能丢失数据
-c:\users\jerryfan\desktop\1234\opencv_test\opencv_test\base.cpp(593): warning C4244: “*=”: 从“double”转换到“int”，可能丢失数据
-c:\users\jerryfan\desktop\1234\opencv_test\opencv_test\base.cpp(846): warning C4244: “=”: 从“double”转换到“int”，可能丢失数据
-c:\users\jerryfan\desktop\1234\opencv_test\opencv_test\base.cpp(982): warning C4244: “+=”: 从“double”转换到“int”，可能丢失数据
-c:\users\jerryfan\desktop\1234\opencv_test\opencv_test\base.cpp(997): warning C4244: “+=”: 从“double”转换到“int”，可能丢失数据
-c:\users\jerryfan\desktop\1234\opencv_test\opencv_test\base.cpp(1021): warning C4244: “=”: 从“double”转换到“int”，可能丢失数据
-c:\users\jerryfan\desktop\1234\opencv_test\opencv_test\base.cpp(1023): warning C4244: “=”: 从“double”转换到“int”，可能丢失数据
-c:\users\jerryfan\desktop\1234\opencv_test\opencv_test\base.cpp(1024): warning C4244: “=”: 从“double”转换到“int”，可能丢失数据
-c:\users\jerryfan\desktop\1234\opencv_test\opencv_test\base.cpp(1142): warning C4244: “=”: 从“double”转换到“int”，可能丢失数据
-c:\users\jerryfan\desktop\1234\opencv_test\opencv_test\base.cpp(1153): warning C4244: “=”: 从“double”转换到“int”，可能丢失数据
-c:\users\jerryfan\desktop\1234\opencv_test\opencv_test\base.cpp(1186): warning C4244: “=”: 从“double”转换到“int”，可能丢失数据
-  main.cpp
-  正在生成代码...
+﻿  main.cpp
+c:\users\jerryfan\desktop\1234\opencv_test\opencv_test\main.cpp(18): warning C4101: “a”: 未引用的局部变量
+c:\users\jerryfan\desktop\1234\opencv_test\opencv_test\main.cpp(18): warning C4101: “b”: 未引用的局部变量
+c:\users\jerryfan\desktop\1234\opencv_test\opencv_test\main.cpp(18): warning C4101: “c”: 未引用的局部变量
   OPENCV_test.vcxproj -> C:\Users\jerryfan\Desktop\1234\OPENCV_test\x64\Debug\OPENCV_test.exe

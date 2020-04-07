@@ -17,6 +17,27 @@
 #define IMGMODE IMREAD_GRAYSCALE		//IMREAD_GRAYSCALE,IMREAD_COLOR
 constexpr auto sigma = 1;						//value of sigma;
 
+
+
+
+typedef struct SQURE_INIT
+{
+	int row;
+	int col;
+	int point_row;
+	int point_col;
+	int num;
+}SQI;
+typedef struct SQURE_POSTION
+{
+	int row[10];
+	int col[10];
+	int point_row[10];
+	int point_col[10];
+	int count = 0;
+}SQ;
+
+
 void img_read(cv::String add);
 void show_image_matrix(cv::Mat image);
 void showHistoCallback(cv::Mat image);
@@ -48,5 +69,10 @@ void round_plus(const int row, const int col, const int step_r, const int step_c
 void round_plus_2(const int row, const int col, double step_r, double step_c, const double weight, const int range = 5);
 void liner_gray_2(const int row, const int col,const int weight);
 int shape_postion(int row, int col, int st_r, int st_c, const int tol);
+
+SQI shape_postion2(SQI Base, const int tol, const int suqre_lim);
+SQ muti_shape(int row_a, int col_a, int row_p, int col_p, SQ Base, const int tol, const int suqre_lim);
+
+
 
 #endif

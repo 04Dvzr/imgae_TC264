@@ -9,7 +9,6 @@ int c_rows, c_cols;
 int color_mode = 0;			//0为黑白，1为三通道RGB
 int prime[] = { 2,3,5,7,11,13,17,19,23,29,31,37,41 };
 
-
 //OPENCV  函数调用、转化
 /**************************************************************************************************************************************************************************************/
 void img_read(cv::String add)			//看图片
@@ -949,10 +948,6 @@ void svp(const int row, const int col, const double integ,int step)
 
 
 
-
-
-
-
 //图像增强、识别算法
 /**************************************************************************************************************************************************************************************/
 /*
@@ -1201,7 +1196,7 @@ void round_plus_2(const int row, const int col,double step_r,double step_c, cons
 }
 /**************************************************************************************************************************************************************************************/
 /*
-单兑成目标中心点寻找
+单对称目标中心点寻找
 
 row为行数
 col为列数
@@ -1263,13 +1258,194 @@ int shape_postion(int row,int col,int st_r,int st_c,const int tol)
 	else
 		return (core_c << 16) + core_r;
 }
+/**************************************************************************************************************************************************************************************/
+/*
+单目标寻找(方框选区)
+
+使用SQI结构体
+tol为容差
+suqre_lim为面积阈值
+
+返回为新SQI结构体
+*/
+SQI shape_postion2(SQI Base, const int tol,const int suqre_lim)
+{
+	if (Base.num > 5)
+		return Base;
+
+	int temp = -1, core_r = 0, core_c = 0, count = 0;
+	for (int i = Base.point_row; i < Base.row; i++)
+	{
+		for (int j = Base.point_col; j < Base.col; j++)
+		{
+			if (IMG_TEMP[i][j] - tol > IMG_TEMP[0][0] || IMG_TEMP[i][j] + tol < IMG_TEMP[0][0])
+			{
+				temp += j;
+				count++;
+			}
+		}
+		if (temp != -1)
+		{
+			core_c = (temp + 1) / count;
+			temp = i;
+			break;
+		}
+	}
+	if (temp == -1)
+		return Base;
+
+	SQI Gen;
+	Gen.num = Base.num + 1;
+	Gen.point_col = core_c;
+
+	count = 0;
+	int state = 1;
+	for (int i = temp; i < Base.row; i++)
+	{
+		if (state)
+		{
+			if (IMG_TEMP[i][core_c] - tol > IMG_TEMP[0][0] || IMG_TEMP[i][core_c] + tol < IMG_TEMP[0][0])
+			{
+				count++;
+				core_r += i;
+				state = 0;
+			}
+			if (count == 2)
+			{
+				core_r /= 2;
+				break;
+			}
+		}
+		else
+		{
+			if (IMG_TEMP[i][core_c] - tol > IMG_TEMP[temp][core_c] || IMG_TEMP[i][core_c] + tol < IMG_TEMP[temp][core_c])
+				state = 1;
+		}
+	}
+	if (count < 2)
+		return Base;
+
+	Gen.point_row = core_r;
+	Gen.row = core_r * 2 - 2 * (temp - 1);
+	Gen.col = 0;
+	count = core_c;
+	while (count<Base.col)
+	{
+		if (IMG_TEMP[core_r][count] - tol > IMG_TEMP[0][0] || IMG_TEMP[core_r][count] + tol < IMG_TEMP[0][0])
+			break;
+		count++;
+		Gen.col++;
+	}
+
+	temp = core_c;
+	while (temp > 0)
+	{
+		if (IMG_TEMP[core_r][temp] - tol > IMG_TEMP[0][0] || IMG_TEMP[core_r][temp] + tol < IMG_TEMP[0][0])
+			break;
+		temp--;
+		Gen.col++;
+	}
+	Gen.col++;
+
+	if(Gen.col*Gen.row< suqre_lim)
+		return Base;
 
 
+	return Gen;
+}
 
+SQ muti_shape(int row_a, int col_a,int row_p,int col_p ,SQ Base, const int tol, const int suqre_lim)
+{
+	if (Base.count > 10)
+		return Base;
+	int base_row= row_p;
+	int base_col= col_p;
 
+	int temp = -1, core_r = 0, core_c = 0, count = 0;
+	for (int i = base_row; i < row_a; i++)
+	{
+		for (int j = base_col; j < col_a; j++)
+		{
+			if (IMG_TEMP[i][j] - tol > IMG_TEMP[0][0] || IMG_TEMP[i][j] + tol < IMG_TEMP[0][0])
+			{
+				temp += j;
+				count++;
+			}
+		}
+		if (temp != -1)
+		{
+			core_c = (temp + 1) / count;
+			temp = i;
+			break;
+		}
+	}
+	if (temp == -1)
+		return Base;
 
+	Base.point_col[Base.count] = core_c;
 
+	count = 0;
+	int state = 1;
+	for (int i = temp; i < row_a; i++)
+	{
+		if (state)
+		{
+			if (IMG_TEMP[i][core_c] - tol > IMG_TEMP[0][0] || IMG_TEMP[i][core_c] + tol < IMG_TEMP[0][0])
+			{
+				count++;
+				core_r += i;
+				state = 0;
+			}
+			if (count == 2)
+			{
+				core_r /= 2;
+				break;
+			}
+		}
+		else
+		{
+			if (IMG_TEMP[i][core_c] - tol > IMG_TEMP[temp][core_c] || IMG_TEMP[i][core_c] + tol < IMG_TEMP[temp][core_c])
+				state = 1;
+		}
+	}
+	if (count < 2)
+		return Base;
 
+	Base.point_row[Base.count] = core_r;
+	Base.row[Base.count]= core_r * 2 - 2 * (temp - 1);
+	Base.col[Base.count] = 0;
+	count = core_c;
+	while (count < col_a)
+	{
+		if (IMG_TEMP[core_r][count] - tol > IMG_TEMP[0][0] || IMG_TEMP[core_r][count] + tol < IMG_TEMP[0][0])
+			break;
+		count++;
+		Base.col[Base.count]++;
+	}
+
+	temp = core_c;
+	while (temp > 0)
+	{
+		if (IMG_TEMP[core_r][temp] - tol > IMG_TEMP[0][0] || IMG_TEMP[core_r][temp] + tol < IMG_TEMP[0][0])
+			break;
+		temp--;
+		Base.col[Base.count]++;
+	}
+	Base.col[Base.count]++;
+
+	if (Base.col[Base.count] * Base.row[Base.count] > suqre_lim)
+	{
+		Base.count++;
+
+		Base = muti_shape(row_a, Base.point_col[Base.count - 1] - Base.col[Base.count - 1] / 2 - 1, Base.point_row[Base.count - 1] - Base.row[Base.count - 1] / 2 + 1, col_p, Base, tol, suqre_lim);
+
+		Base = muti_shape(row_a, Base.point_col[Base.count - 1] + Base.col[Base.count - 1] / 2 - 1, Base.point_row[Base.count - 1] + Base.row[Base.count - 1] / 2 + 1, Base.point_col[Base.count - 1] - Base.col[Base.count - 1] / 2 + 1, Base, tol, suqre_lim);
+
+		Base = muti_shape(row_a, col_a, Base.point_row[Base.count - 1] - Base.row[Base.count - 1] / 2 + 1, Base.point_col[Base.count - 1] + Base.col[Base.count - 1] / 2 + 1, Base, tol, suqre_lim);
+	}
+	
+	return Base;
+}
 
 
 
