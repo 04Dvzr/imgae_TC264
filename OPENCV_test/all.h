@@ -19,7 +19,15 @@ constexpr auto sigma = 1;						//value of sigma;
 
 
 
+/*
+SQI结构体
+存储单个目标中心点和方框长宽
 
+row为行数
+col为列数
+point_row为方框高度
+point_col为方框宽度
+*/
 typedef struct SQURE_INIT
 {
 	int row;
@@ -28,6 +36,16 @@ typedef struct SQURE_INIT
 	int point_col;
 	int num;
 }SQI;
+/*
+SQ结构体
+存储多个目标中心点和方框长宽
+
+row为行数
+col为列数
+point_row为方框高度
+point_col为方框宽度
+count为记录数
+*/
 typedef struct SQURE_POSTION
 {
 	int row[10];

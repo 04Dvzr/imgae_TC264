@@ -1353,7 +1353,19 @@ SQI shape_postion2(SQI Base, const int tol,const int suqre_lim)
 
 	return Gen;
 }
+/**************************************************************************************************************************************************************************************/
+/*
+多目标寻找(严格方框选区)
 
+row_a为横行扫描终点
+col_a为纵行扫描终点
+row_p为横行扫描起点
+col_p为纵行扫描起点
+tol为容差
+suqre_lim为面积阈值
+
+返回为SQ结构体
+*/
 SQ muti_shape(int row_a, int col_a,int row_p,int col_p ,SQ Base, const int tol, const int suqre_lim)
 {
 	if (Base.count > 10)
