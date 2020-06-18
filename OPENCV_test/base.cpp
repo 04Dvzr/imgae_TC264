@@ -5,6 +5,7 @@ using namespace cv;
 using namespace std;
 
 int IMG_TEMP[4096][4096];
+int IMG_TEMP2[4096][4096];
 int c_rows, c_cols;
 int color_mode = 0;			//0为黑白，1为三通道RGB
 int prime[] = { 2,3,5,7,11,13,17,19,23,29,31,37,41 };
@@ -29,11 +30,14 @@ void img_read(cv::String add)			//看图片
 /**************************************************************************************************************************************************************************************/
 void show_image_matrix(cv::Mat image)				//RGB矩阵显示
 {
-	int row = image.rows;
-	int col = image.cols;
+//	int row = image.rows;
+//	int col = image.cols;
 
-	c_rows = row;
-	c_cols = col;
+//	c_rows = row;
+//	c_cols = col;
+
+	int row = c_rows;
+	int col = c_cols;
 
 	int **img = new int *[row];
 	for (int i = 0; i < row; i++) 
@@ -219,7 +223,20 @@ Mat addSaltNoise(const Mat srcImage, int n)
 	return dstImage;
 }
 /**************************************************************************************************************************************************************************************/
-
+Mat draw_rect(Mat img,SQ pos)
+{
+	if (pos.count < 0)
+		return img;
+	Mat out(img.size(), CV_8UC3);
+	cvtColor(img, out, COLOR_GRAY2BGR);
+	for (int i = 0; i <= pos.count; i++)
+	{
+		if (pos.row[i] < 0 || pos.col[i] < 0)
+			break;
+		rectangle(out, Rect((pos.point_row[i]- pos.row[i]/2), (pos.point_col[i] - pos.col[i] / 2), pos.row[i], pos.col[i]), Scalar(0, 0, 255), 1, 1, 0);
+	}
+	return out;
+}
 
 
 
@@ -1195,6 +1212,60 @@ void round_plus_2(const int row, const int col,double step_r,double step_c, cons
 	}
 }
 /**************************************************************************************************************************************************************************************/
+void sobel_shaper(const int row, const int col,const int thres_val)
+{
+	int sum_r,sum_c, sum = 0;
+	int sobel_row[3][3] = { 1, 2, 1,
+						     0, 0, 0,
+						    -1, -2, -1 };
+
+	int sobel_col[3][3] = { -1, 0, 1,
+						   -2, 0, 2,
+						   -1, 0, 1 };
+
+	for (int i = 0; i < row; i++)
+	{
+		for (int j = 0; j < col; j++)
+		{
+			sum_r = 0;
+			sum_c = 0;
+			for (int k = -1; k != 2; k++)
+			{
+				for (int l = -1; l != 2; l++)
+				{
+					if (i + k < 0 || j + l < 0)
+						continue;
+					else if (i + k >= row || j + l >= col)
+						continue;
+					sum_r += IMG_TEMP[i + k][j + l] * sobel_row[k + 1][l + 1];
+
+					sum_c += IMG_TEMP[i + k][j + l] * sobel_col[k + 1][l + 1];
+
+				}
+			}
+			IMG_TEMP2[i][j] = abs(sum_r) + abs(sum_c);
+			sum += IMG_TEMP2[i][j];
+
+		}
+	}
+	for (int i = 0; i < row; i++)
+	{
+		for (int j = 0; j < col; j++)
+		{
+			if (i == 0 || i == row - 1 || j == 0 || j == col - 1)
+				IMG_TEMP[i][j] = 0;
+			else if (abs(IMG_TEMP2[0][0] - IMG_TEMP2[i][j]) > thres_val)
+				IMG_TEMP[i][j] = 255;
+			else
+				IMG_TEMP[i][j] = 0;
+		}
+	}
+}
+
+
+
+
+/**************************************************************************************************************************************************************************************/
 /*
 单对称目标中心点寻找
 
@@ -1458,6 +1529,250 @@ SQ muti_shape(int row_a, int col_a,int row_p,int col_p ,SQ Base, const int tol, 
 	
 	return Base;
 }
+
+
+
+PP_S* outside_force(const uint16_t row, const uint16_t col,uint8_t dir,PP_S *all, const uint16_t all_row, const uint16_t all_col)
+{
+	uint8_t loop,dloop;
+	bool state = 0;
+	if (dir == LEFT)
+	{
+		loop = -1;
+		dloop = 2;
+	}
+	else if (dir == RIGHT)
+	{
+		loop = 1;
+		dloop = 1;
+	}
+	else
+	{
+		loop = -1;
+		dloop = 3;
+	}
+
+	for (int8_t i = loop; i < loop + dloop; i++)
+	{
+		for (int8_t j = loop; j < loop + dloop; j++)
+		{
+			if (i == 0 && j == 0)
+				break;
+			else if (IMG_TEMP2[row + i][col + j] - IMG_TEMP2[row][col] < 20)
+			{
+				uint8_t temp = 1;
+				do
+				{
+					temp++;
+					if ((row + temp * i > all_row) || (col + temp * i > all_col)|| (row + temp * i < 0) || (col + temp * i < 0))
+						return all;
+				} while (abs(IMG_TEMP2[row + temp * i][col + temp * j] - IMG_TEMP2[row][col]) < 20);
+
+				if (row + i * temp >= all->row_max)
+				{
+					all->row_max = row + i * temp;
+					state = 1;
+				}
+				else if (row + i * temp <= all->row_min)
+				{
+					all->row_min = row + i * temp;
+					state = 1;
+				}
+
+				if (col + j * temp >= all->col_max)
+				{
+					all->col_max = col + j * temp;
+					state = 1;
+				}
+				else if (col + j * temp <= all->col_min)
+				{
+					all->col_min = col + j * temp;
+					state = 1;
+				}
+			}
+		}
+	}
+	if (state)
+	{
+		if (dir == LEFT)
+			all = outside_force(row, col, LEFT, all, all_row, all_col);
+		else if (dir == RIGHT)
+			all = outside_force(row, col, RIGHT, all, all_row, all_col);
+		else
+		{
+			all = outside_force(row, col, LEFT, all, all_row, all_col);
+			all = outside_force(row, col, RIGHT, all, all_row, all_col);
+		}
+	}
+
+	return all;
+}
+
+
+SQ approach(int row_a, int col_a, int row_p, int col_p ,SQ pos)
+{
+	if ((row_a >= row_p) || (col_a >= col_p) || (pos.count >= 10))
+		return pos;
+
+	PP_S Core;
+	PP_S *core = &Core;
+
+	for (int i = row_a; i < row_p; i++)
+	{
+		for (int j = col_a; j < col_p; j++)
+		{
+			if (IMG_TEMP2[i][j] > 240)
+			{
+				core = outside_force(i,j,ZERO,core, row_p, col_p);
+				pos.point_row[pos.count] = (core->row_max + core->row_min) / 2;
+				pos.point_col[pos.count] = (core->col_max + core->col_min) / 2;
+				pos.col[pos.count] = core->row_max - core->row_min;
+				pos.row[pos.count] = core->col_max - core->col_min;
+				pos.count++;
+				goto end_loop;
+			}
+		}
+	}
+	end_loop:
+	pos = approach(row_a, core->col_min + 1, core->row_min - 1, col_p, pos);
+	pos = approach(core->row_min, core->col_min, core->row_max, core->col_max, pos);
+	pos = approach(core->row_max+1, core->col_min + 1, core->row_min, col_p, pos);
+
+
+	return pos;
+}
+
+
+PP_S outside_search(int point_x, int point_y, const int step)
+{
+	PP_S ALL;
+	if (point_x < step || point_x> c_rows - step || point_y< step || point_y> c_cols - step)
+		return ALL;
+
+	ALL.col_max = point_y;
+	ALL.col_min = point_y;
+	ALL.row_max = point_x;
+	ALL.row_min = point_x;
+
+	bool state = FALSE;
+
+_LEFT:
+	for (int j = -step; j <= 0; j++)
+	{
+		for (int i = -step; i <= step; i++)
+		{
+			if (IMG_TEMP[point_x + i][point_y + j] > 200)
+			{
+				if (i == 0 && j == 0)
+					break;
+
+				point_x = point_x + i;
+				point_y = point_y + j;
+				goto _LEFT;
+
+			}
+		}
+	}
+	ALL.col_min = point_y;
+
+_DOWN:
+	for (int i = step; i >= 0; i--)
+	{
+		for (int j = -step; j <= step; j++)
+		{
+			if (IMG_TEMP[point_x + i][point_y + j] > 200)
+			{
+				if (i == 0 && j == 0)
+					break;
+
+				point_x = point_x + i;
+				point_y = point_y + j;
+				goto _DOWN;
+
+			}
+		}
+	}
+	ALL.row_max = point_x;
+	point_x = ALL.row_min;
+	point_y = ALL.col_max;
+
+_RIGHT:
+	for (int j = step; j >= 0; j--)
+	{
+		for (int i = -step; i <= step; i++)
+		{
+			if (IMG_TEMP[point_x + i][point_y + j] > 200)
+			{
+				if (i == 0 && j == 0)
+					break;
+
+				point_x = point_x + i;
+				point_y = point_y + j;
+				goto _RIGHT;
+
+			}
+		}
+	}
+	ALL.col_max = point_y;
+
+	return ALL;
+}
+
+
+
+SQ muti_search(int row, int col, const int step, const int space_area,const int offset)
+{
+	SQ ALL;
+	PP_S TEMP;
+	int point_x = offset, point_y = 0;
+	bool state = FALSE;
+	int temp;
+
+
+	for (int i = point_x; i < row - offset; i++)
+	{
+		for (int j = point_y; j < col; j++)
+		{
+			if (ALL.count != 0)
+			{
+				temp = ALL.count;
+				while (temp > 0)
+				{
+					if (i >= ALL.point_row[temp - 1] - ALL.row[temp - 1] / 2 && i <= ALL.point_row[temp - 1] + ALL.row[temp - 1] / 2 &&
+						j >= ALL.point_col[temp - 1] - ALL.col[temp - 1] / 2 && j <= ALL.point_col[temp - 1] + ALL.col[temp - 1] / 2)
+					{
+						goto _NEXT;
+					}
+					temp--;
+				}
+			}
+
+			if (IMG_TEMP[i][j] > 200)
+			{
+				if (ALL.count >= 9)
+					return ALL;
+				TEMP = outside_search(i, j, 4);
+				if ((TEMP.col_max - TEMP.col_min)*(TEMP.row_max - TEMP.row_min) > space_area && ALL.count < 10)
+				{
+					ALL.row[ALL.count] = TEMP.row_max - TEMP.row_min + 4;
+					ALL.col[ALL.count] = TEMP.col_max - TEMP.col_min + 4;
+					ALL.point_row[ALL.count] = TEMP.row_min + (TEMP.row_max - TEMP.row_min) / 2;
+					ALL.point_col[ALL.count] = TEMP.col_min + (TEMP.col_max - TEMP.col_min) / 2;
+					ALL.count++;
+				}
+			}
+
+		_NEXT:
+			{
+
+			}
+		}
+	}
+
+	return ALL;
+}
+
+
 
 
 

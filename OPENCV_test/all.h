@@ -18,15 +18,14 @@
 constexpr auto sigma = 1;						//value of sigma;
 
 
-
 /*
 SQI结构体
 存储单个目标中心点和方框长宽
 
 row为行数
 col为列数
-point_row为方框高度
-point_col为方框宽度
+point_row为方框中心高度
+point_col为方框中心宽度
 */
 typedef struct SQURE_INIT
 {
@@ -42,8 +41,8 @@ SQ结构体
 
 row为行数
 col为列数
-point_row为方框高度
-point_col为方框宽度
+point_row为方框中心高度
+point_col为方框中心宽度
 count为记录数
 */
 typedef struct SQURE_POSTION
@@ -55,12 +54,30 @@ typedef struct SQURE_POSTION
 	int count = 0;
 }SQ;
 
+typedef struct POINT_POSTION
+{
+	uint16_t point_row;
+	uint16_t point_col;
+}PP;
+
+typedef struct POINT_POSTION_SET
+{
+	uint16_t row_max = 0;
+	uint16_t col_max = 0;
+	uint16_t row_min = 0;
+	uint16_t col_min = 0;
+}PP_S;
+
+enum DIR { ZERO, LEFT, RIGHT };
+enum STATE { FALSE, TRUE };
 
 void img_read(cv::String add);
 void show_image_matrix(cv::Mat image);
 void showHistoCallback(cv::Mat image);
 void trans_blackwhite_matrix(cv::Mat image);
 void draw_temp_pic(cv::Mat image);
+Mat draw_rect(Mat img, SQ pos);
+
 
 cv::Mat addSaltNoise(const cv::Mat srcImage, int n);
 
@@ -83,14 +100,22 @@ void svp(const int row, const int col, const double integ, int step = 12);
 
 void lapace_shaper(const int row, const int col, double prewitt_val, double div);
 void liner_gray(const int row, const int col);
+void liner_gray_2(const int row, const int col, const int weight);
 void round_plus(const int row, const int col, const int step_r, const int step_c, const int weight, const int range = 5);
 void round_plus_2(const int row, const int col, double step_r, double step_c, const double weight, const int range = 5);
-void liner_gray_2(const int row, const int col,const int weight);
+void sobel_shaper(const int row, const int col, const int thres_val);
+
+
 int shape_postion(int row, int col, int st_r, int st_c, const int tol);
 
 SQI shape_postion2(SQI Base, const int tol, const int suqre_lim);
 SQ muti_shape(int row_a, int col_a, int row_p, int col_p, SQ Base, const int tol, const int suqre_lim);
 
+PP_S* outside_force(const uint16_t row, const uint16_t col, uint8_t dir, PP_S *all, const uint16_t all_row, const uint16_t all_col);
+SQ approach(int row_a, int col_a, int row_p, int col_p, SQ pos);
+
+PP_S outside_search(int point_x, int point_y, const int step);
+SQ muti_search(int row, int col, const int step, const int space_area, const int offset);
 
 
 #endif

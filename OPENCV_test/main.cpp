@@ -1,141 +1,88 @@
-ï»¿//	/*
+
+
+
 #include "pch.h"
 #include "all.h"
 #include <time.h>
 
 using namespace cv;
 using namespace std;
-
-extern int IMG_TEMP[1000][1000];
 extern int c_rows, c_cols;
-extern int color_mode;			//0ä¸ºé»‘ç™½ï¼Œ1ä¸ºä¸‰é€šé“RGB
 
 
-
-int main(int argc, char** argv)
+int main()
 {
-	int start, stop;
-	int a,b,c;
-	double	duration;
-	String filename = (argc >= 2) ? argv[1] : "../tset_img/g.jpg";
-	Mat image;
-	image = imread(filename, IMGMODE); // Read the file
-
-	if (image.empty()) // Check for invalid input
+	VideoCapture capture(1); // ´ò¿ªÉãÏñÍ·
+	if (!capture.isOpened()) // ÅÐ¶ÏÊÇ·ñ´ò¿ª³É¹¦
 	{
-		cout << "Could not open or find the image" << endl;
+		cout << "open camera failed. " << endl;
 		return -1;
 	}
-	namedWindow("Display window", WINDOW_GUI_EXPANDED);// Create a window for display.
-	imshow("Display window", image); // Show our image inside it.
+
+	capture.set(CAP_PROP_FRAME_WIDTH, 320);//¿í¶È 
+	capture.set(CAP_PROP_FRAME_HEIGHT, 240);//¸ß¶È
+
+
+	c_cols = capture.get(CAP_PROP_FRAME_WIDTH);
+	c_rows = capture.get(CAP_PROP_FRAME_HEIGHT); 
 
 
 
-	Mat noisy(image.size(), CV_8U);
-//	/*
-	// ADD NOISY
-	Mat Noisy(image.size(), CV_32FC1);
-	Mat Pic(image.size(), CV_32FC1);
+	namedWindow("camera", WINDOW_GUI_EXPANDED);
+	namedWindow("camera1", WINDOW_GUI_EXPANDED);
+	namedWindow("after_proess", WINDOW_GUI_EXPANDED);
+	
+	while (true)
+	{
+		Mat frame;
+		capture >> frame; // ¶ÁÈ¡Í¼ÏñÖ¡ÖÁframe
+		if (!frame.empty()) // ÅÐ¶ÏÊÇ·ñÎª¿Õ
+		{
+			imshow("camera", frame);
 
-	uchar2float(image, Pic);
-	addNoise(sigma, Pic, Noisy);
-	float2uchar(Noisy, noisy);
-//	*/
-//	noisy = addSaltNoise(image, sigma);
+			Mat image;
+			Mat show_image(c_rows, c_cols, CV_8UC1);
+			Mat rect_image(show_image.size(), CV_8UC3);
 
-//	namedWindow("noisy window", WINDOW_GUI_EXPANDED);
-//	imshow("noisy window", noisy);
+			cvtColor(frame, image, COLOR_BGR2GRAY);
+			imshow("camera1", image);
 
-	int row = image.rows;
-	int col = image.cols;
+			show_image_matrix(image);
+
+
+			near_avg_re(c_rows, c_cols,1);
+			sobel_shaper(c_rows, c_cols,100);
+			draw_temp_pic(show_image);
+
+
+			imshow("after_proess", show_image);
+
+
+
+
+			SQ AAAA;
+//			AAAA = muti_shape(320,240,0,0,AAAA,20,200);
+			AAAA = muti_search(320,240,4,100,20);
+			rect_image = draw_rect(show_image, AAAA);
+			namedWindow("after_proess1", WINDOW_GUI_EXPANDED);
+			imshow("after_proess1", draw_rect(show_image, AAAA));
 
 /*
-	SQI abc;
-	abc.row = row;
-	abc.col = col;
-	abc.point_col = 0;
-	abc.point_row = 0;
-	abc.num= 0;
-
-	SQI bc;
+			for (int i = 0; i != AAAA.count + 1; i++)
+			{
+			    cout << "ÖÐÐÄµã row " << AAAA.point_row[i] << " col " << AAAA.point_col[i] << endl;
+				cout << "rowÊý " << AAAA.row[i] << " colÊý " << AAAA.col[i] << endl;
+				cout << i << endl;
+			}
 */
-
-	SQ AAAA;
-
-	show_image_matrix(noisy);
-	Mat img2(c_rows, c_cols, CV_8UC1);
-	start = clock();
-
-//	filter_near(row,col,2,35);
-//	filter_near_avg(row, col, 2, 35, 20,18);
-//	near_avg_re(row, col, 1);
-//	round_plus(row, col, 3, 3, 75, 20);
-//	round_plus_2(row,col,3.5,3.5,28,8);
-//	lapace_shaper(row, col, 3.85,0.01);
-//	filter_mid(row, col, 1);
-//	filter_near(row, col, 1, 20);
-
-
-
-
-//	bc=shape_postion2(abc,10,100);
-//	a=shape_postion(row,col,0,0,10);
-	AAAA = muti_shape(320,240,0,0,AAAA,20,200);
-
-
-	stop = clock();
-	duration = double(stop - start);
-	draw_temp_pic(img2);
-	namedWindow("Display1 window", WINDOW_GUI_EXPANDED);
-	imshow("Display1 window", img2);
-	cout << "time for filter_near:" << duration << " ms" << endl;
-
-	for (int i = 0; i != AAAA.count+1; i++)
-	{
-		cout << "ä¸­å¿ƒç‚¹ row " << AAAA.point_row[i] << " col " << AAAA.point_col[i] << endl;
-		cout << "rowæ•° " << AAAA.row[i] << " colæ•° " << AAAA.col[i] << endl;
-		cout << i << endl;
+		}
+		
+		if (waitKey(30) > 0) // delay 30 msµÈ´ý°´¼ü
+		{
+			break;
+		}
 	}
 
-//	cout << "ä¸­å¿ƒç‚¹ row " << bc.point_row <<" col "<< bc.point_col << endl;
-//	cout << "rowæ•° " << bc.row << " colæ•° " << bc.col << endl;
-
-
-
-//å¯¹æ¯”æ˜¾ç¤º
-/*
-	show_image_matrix(noisy);
-	Mat img3(c_rows, c_cols, CV_8UC1);
-	start = clock();
-
-	near_avg_re(row, col, 1);
-	round_plus_2(row,col,3.5,3.5,28,8);
-//	liner_gray_2(row, col,144);
-//	round_plus(row, col, 4, 4, 300, 8);
-//	lapace_shaper(row, col, 3.85,0.01);
-
-
-//	near_avg_re(row, col, 1);
-//	svp(row, col, 1.8,3);
-//	Perwitt_shaper(row, col,1,0);
-//	liner_gray(row, col);
-//	svp(row, col, 1.8,3);
-//	filter_near(row, col, 2, 35);
-//	filter_near(row, col, 1, 20);
-//	filter_mid(row, col, 2);
-//	filter_cross(row, col, 3, 30, 0.25);
-//	filter_near_avg(row, col, 2, 35, 20);
-//	shaper_mat(row, col, 2, 50);
-	stop = clock();
-	duration = double(stop - start);
-	draw_temp_pic(img3);
-	namedWindow("Display2 window", WINDOW_GUI_EXPANDED);
-	imshow("Display2 window", img3);
-	cout << "time for filter_cross:" << duration << " ms" << endl;
-	*/
-
-
-	waitKey(0);
-	
 	return 0;
+
 }
